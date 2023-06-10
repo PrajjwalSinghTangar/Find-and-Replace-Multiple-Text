@@ -1,7 +1,7 @@
 <b>Find and Replace Multiple Text</b><br/>
 This is a simple web tool that allows you to find and replace multiple text values in a given content using a CSV file. The tool supports the regular expression syntax for advanced matching.<br/>
 
-<b>How to Use</b>
+<b>How to Use</b><br/>
 Open the Find and Replace Multiple Text website in your web browser.<br/>
 
 Copy the content you want to perform find and replace on, and paste it into the "Paste your content below" textarea.<br/>
