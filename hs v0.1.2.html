@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Find and Replace Multiple Text</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    #content {
+      width: 500px;
+      margin: 20px auto;
+    }
+    textarea {
+      width: 100%;
+      height: 150px;
+    }
+    input[type="file"] {
+      margin-top: 10px;
+    }
+    #csvData {
+      margin-top: 10px;
+      border: 1px solid #ccc;
+      padding: 10px;
+      white-space: pre-wrap;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="content">
+    <h2>Find and Replace Multiple Text</h2>
+    <p>Paste your content below:</p>
+    <textarea id="inputContent" placeholder="Copy/Paste Your Content..."></textarea>
+    <p>Upload a CSV file:</p>
+    <input type="file" id="csvFile" accept=".csv" />
+    <p>Your Values:</p>
+    <div id="values"></div>
+    <button onclick="findAndReplace()">Find and Replace</button>
+    <div id="downloadButtonContainer" style="margin-top: 10px;">
+      <button onclick="downloadSampleCSV()" id="downloadButton">Download Sample CSV</button>
+    </div>
+    <h3 id="csvDataTitle" style="display: none;">CSV Data:</h3>
+    <pre id="csvData"></pre>
+  </div>
+
+  <script>
+    let csvDataContent = "";
+
+    function findAndReplace() {
+      const inputContent = document.getElementById("inputContent");
+      const csvFile = document.getElementById("csvFile").files[0];
+
+      if (inputContent.value === "" || !csvFile) {
+        alert("Please provide both content and a CSV file.");
+        return;
+      }
+
+      const reader = new FileReader();
+
+      reader.onload = function (event) {
+        const csvData = event.target.result;
+        const values = parseCSV(csvData);
+
+        if (values.length === 0) {
+          alert("No values found in the CSV file.");
+          return;
+        }
+
+        replaceValues(inputContent, values);
+        document.getElementById("downloadButtonContainer").style.display = "none";
+      };
+
+      reader.readAsText(csvFile);
+    }
+
+    function parseCSV(csvData) {
+      const lines = csvData.split(/\r\n|\n/);
+      const values = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i].trim();
+
+        if (line !== "") {
+          const columns = line.split(",");
+          if (columns.length === 2) {
+            const originalValue = columns[0].trim();
+            const replaceValue = columns[1].trim();
+            values.push({ originalValue, replaceValue });
+          }
+        }
+      }
+
+      return values;
+    }
+
+    function escapeRegExp(string) {
+      return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+
+    function replaceValues(inputContent, values) {
+      let content = inputContent.value;
+
+      for (let i = 0; i < values.length; i++) {
+        const { originalValue, replaceValue } = values[i];
+        const escapedValue = escapeRegExp(originalValue);
+        const regex = new RegExp(escapedValue, "g");
+
+        content = content.replace(regex, replaceValue);
+      }
+
+      inputContent.value = content;
+    }
+
+    document.getElementById("csvFile").addEventListener("change", function (event) {
+      const csvFile = event.target.files[0];
+
+      if (csvFile) {
+        const reader = new FileReader();
+
+        reader.onload = function (event) {
+          csvDataContent = event.target.result;
+          document.getElementById("csvData").innerText = csvDataContent;
+          document.getElementById("csvData").style.display = "block";
+          document.getElementById("csvDataTitle").style.display = "block";
+          document.getElementById("downloadButtonContainer").style.display = "none";
+        };
+
+        reader.readAsText(csvFile);
+      }
+    });
+
+    function downloadSampleCSV() {
+      const csvContent = "Original,Replace\n" +
+                         "Lorem,Ipsum\n" +
+                         "dolor,sit\n" +
+                         "amet,consectetur\n" +
+                         "adipiscing,elit\n";
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.setAttribute("href", url);
+      link.setAttribute("download", "sample.csv");
+      link.style.visibility = "hidden";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>
